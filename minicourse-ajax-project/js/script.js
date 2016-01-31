@@ -34,8 +34,36 @@ function loadData() {
                                               "<p>" + data.response.docs[index].snippet + "</p></li>" );
                 
             });
+    }).fail(function(err) {
+        console.log("Hit error");
+        $("#nytimes-articles").append("<li class='error'><p>Unable to load NYTimes data</p></li>");
     });
     
+    city = city.replace(" ", "_");
+    var remoteUrlWithOrigin = "http://en.wikipadfdaedia.org/w/api.php?action=opensearch&search=" + city + "&format=json&callback=wikiCallback";
+    var link = "https://en.wikipedia.org/wiki/" + city;
+    var wikiTimeout = setTimeout(function(){
+        $wikiElem.append('<li>Could not obtain wiki articles</li>');
+    }, 10000);
+    $.ajax( {
+        url: remoteUrlWithOrigin,
+        dataType: "jsonp",
+        //Use done instead of success as success is deprecated as of 1.8
+        done: function (data) {
+            console.log(data);
+            var articleList = data[1]
+            for(var i=0; i<articleList.length; i++) {
+                var url = "http://en.wikipedia.org/wiki/" + articleList[i];
+                $wikiElem.append('<li><a href="' + url + '">' + articleList[i] + '</a></li>');
+            };
+            clearTimeout(wikiTimeout);
+        }
+        // apparently Jsonp error handling is more complicated because of the response coming back as a function
+        //error: function (errorMessage) {
+        //    $wikiElem.append('<li>Could not obtain wiki articles</li>');
+        //}
+    } );
+
     return false;
 };
 
